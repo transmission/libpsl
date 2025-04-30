@@ -2,7 +2,7 @@
 # This is just the minimum subset needed for building an embedded
 # static library into Transmission.
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.10)
 
 project(psl
   VERSION 0.21.1.0 # when changing this, must set LIBPSL_VERSION_NUMBER too
