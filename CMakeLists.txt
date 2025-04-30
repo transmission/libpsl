@@ -22,7 +22,7 @@ add_definitions(
   # ensure that builtin list is enabled even though the client code
   # is going to ensure utf8 + lowercase instead of bundling more
   # dependencies here (e.g. libidn2, libunistring)
-  -DFORCE_BUILTIN_LIST=1
+  -DENABLE_BUILTIN=1
 )
 
 set(PSL_FILE "${CMAKE_SOURCE_DIR}/list/public_suffix_list.dat")

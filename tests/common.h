@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 2017-2024 Tim Ruehsen
+ * Copyright(c) 2014-2024 Tim Ruehsen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,58 +19,20 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  *
- * This file is part of libpsl.
+ * This file is part of the test suite of libpsl.
  */
 
-#include <config.h>
+#ifndef COMMON_H
+#define COMMON_H
 
-#include <assert.h> /* assert */
-
-#ifdef HAVE_STDINT_H
-#include <stdint.h> /* uint8_t */
-#elif defined (_MSC_VER)
-typedef unsigned __int8 uint8_t;
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#include <stdlib.h> /* malloc, free */
-#include <string.h> /* memcpy */
-#include <stdio.h> /* fmemopen */
+int run_valgrind(const char *valgrind, const char *executable);
 
-#include "libpsl.h"
-#include "fuzzer.h"
-
-int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
-#ifdef HAVE_FMEMOPEN
-	FILE *fp;
-	psl_ctx_t *psl;
-	char *in = (char *) malloc(size + 16);
-
-	assert(in != NULL);
-
-	/* create a valid DAFSA input file */
-	memcpy(in, ".DAFSA@PSL_0   \n", 16);
-	memcpy(in + 16, data, size);
-
-	fp = fmemopen(in, size + 16, "r");
-	assert(fp != NULL);
-
-	psl = psl_load_fp(fp);
-
-	psl_is_public_suffix(NULL, NULL);
-	psl_is_public_suffix(psl, ".ü.com");
-	psl_suffix_wildcard_count(psl);
-	psl_suffix_exception_count(psl);
-	psl_suffix_count(psl);
-
-	psl_free(psl);
-	fclose(fp);
-
-	psl = psl_latest(NULL);
-	psl_free(psl);
-
-	free(in);
-#endif
-
-	return 0;
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* COMMON_H */

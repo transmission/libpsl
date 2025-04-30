@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 2017-2024 Tim Ruehsen
+ * Copyright(c) 2014-2024 Tim Ruehsen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,58 +19,30 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  *
- * This file is part of libpsl.
+ * This file is part of the test suite of libpsl.
  */
 
-#include <config.h>
-
-#include <assert.h> /* assert */
-
-#ifdef HAVE_STDINT_H
-#include <stdint.h> /* uint8_t */
-#elif defined (_MSC_VER)
-typedef unsigned __int8 uint8_t;
+#include <stdio.h> // snprintf
+#include <stdlib.h> // exit, system
+#include <string.h> // strlen
+#if defined _WIN32
+#	include <malloc.h>
 #endif
 
-#include <stdlib.h> /* malloc, free */
-#include <string.h> /* memcpy */
-#include <stdio.h> /* fmemopen */
-
-#include "libpsl.h"
-#include "fuzzer.h"
-
-int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+int run_valgrind(const char *valgrind, const char *executable)
 {
-#ifdef HAVE_FMEMOPEN
-	FILE *fp;
-	psl_ctx_t *psl;
-	char *in = (char *) malloc(size + 16);
+	char cmd[BUFSIZ];
+	int n, rc;
 
-	assert(in != NULL);
+	n = snprintf(cmd, sizeof(cmd), "TESTS_VALGRIND="" %s %s", valgrind, executable);
+	if ((unsigned)n >= sizeof(cmd)) {
+		printf("Valgrind command line is too long (>= %u)\n", (unsigned) sizeof(cmd));
+		return EXIT_FAILURE;
+	}
 
-	/* create a valid DAFSA input file */
-	memcpy(in, ".DAFSA@PSL_0   \n", 16);
-	memcpy(in + 16, data, size);
+	if ((rc = system(cmd))) {
+		printf("Failed to execute with '%s' (system() returned %d)\n", valgrind, rc);
+	}
 
-	fp = fmemopen(in, size + 16, "r");
-	assert(fp != NULL);
-
-	psl = psl_load_fp(fp);
-
-	psl_is_public_suffix(NULL, NULL);
-	psl_is_public_suffix(psl, ".ü.com");
-	psl_suffix_wildcard_count(psl);
-	psl_suffix_exception_count(psl);
-	psl_suffix_count(psl);
-
-	psl_free(psl);
-	fclose(fp);
-
-	psl = psl_latest(NULL);
-	psl_free(psl);
-
-	free(in);
-#endif
-
-	return 0;
+	return rc ? EXIT_FAILURE : EXIT_SUCCESS;
 }
